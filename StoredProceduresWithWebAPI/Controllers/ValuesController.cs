@@ -19,6 +19,7 @@ namespace StoredProceduresWithWebAPI.Controllers
         public List<Employee> Get()
         {
             SqlDataAdapter da = new SqlDataAdapter("usp_GetAllEmployees", con);
+            da.SelectCommand.CommandType = CommandType.StoredProcedure;
             DataTable dt = new DataTable();
             da.Fill(dt);
             List<Employee> lstEmployee = new List<Employee>();
@@ -33,7 +34,6 @@ namespace StoredProceduresWithWebAPI.Controllers
                     emp.Active = Convert.ToInt32(dt.Rows[i]["Active"]);
                     lstEmployee.Add(emp);
                 }
-
             }
             if(lstEmployee.Count > 0)
             {
@@ -46,28 +46,28 @@ namespace StoredProceduresWithWebAPI.Controllers
         }
 
         // GET api/values/5
-        public string Get(int id)
+        public Employee Get(int id)
         {
-            SqlDataAdapter da = new SqlDataAdapter("usp_GetAllEmployees", con);
+            SqlDataAdapter da = new SqlDataAdapter("usp_GetAEmployeeByID", con);
+            da.SelectCommand.CommandType = CommandType.StoredProcedure;
+            da.SelectCommand.Parameters.AddWithValue("@id", id);
             DataTable dt = new DataTable();
             da.Fill(dt);
-            List<Employee> lstEmployee = new List<Employee>();
+            Employee emp = new Employee();
+
             if (dt.Rows.Count > 0)
-            {
-                for (int i = 0; i < dt.Rows.Count; i++)
-                {
-                    Employee emp = new Employee();
-                    emp.Name = dt.Rows[i]["Name"].ToString();
-                    emp.Id = Convert.ToInt32(dt.Rows[i]["Id"]);
-                    emp.Age = Convert.ToInt32(dt.Rows[i]["Age"]);
-                    emp.Active = Convert.ToInt32(dt.Rows[i]["Active"]);
-                    lstEmployee.Add(emp);
-                }
+            {             
+            
+                    emp.Name = dt.Rows[0]["Name"].ToString();
+                    emp.Id = Convert.ToInt32(dt.Rows[0]["Id"]);
+                    emp.Age = Convert.ToInt32(dt.Rows[0]["Age"]);
+                    emp.Active = Convert.ToInt32(dt.Rows[0]["Active"]);
+                
 
             }
-            if (lstEmployee.Count > 0)
+            if (emp != null)
             {
-                return lstEmployee;
+                return emp;
             }
             else
             {
@@ -106,13 +106,64 @@ namespace StoredProceduresWithWebAPI.Controllers
         }
 
         // PUT api/values/5
-        public void Put(int id, [FromBody] string value)
+        public string Put(int id, Employee employee)
         {
+            string msg = "";
+            if (employee != null)
+            {
+                SqlCommand cmd = new SqlCommand("usp_UpdateEmployee", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Id", id);
+                cmd.Parameters.AddWithValue("@Name", employee.Name);
+                cmd.Parameters.AddWithValue("@Age", employee.Age);
+                cmd.Parameters.AddWithValue("@Active", employee.Active);
+
+                con.Open();
+                int i = cmd.ExecuteNonQuery();
+                con.Close();
+
+                if (i > 0)
+                {
+                    msg = "Data has been updated";
+                }
+                else
+                {
+                    msg = "Error";
+                }
+
+            }
+            return msg;
         }
 
         // DELETE api/values/5
-        public void Delete(int id)
+        public string Delete(int id)
         {
+            string msg = "";
+            
+                SqlCommand cmd = new SqlCommand("usp_DeleteEmployee", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Id", id);
+
+                con.Open();
+                int i = cmd.ExecuteNonQuery();
+                con.Close();
+
+                if (i > 0)
+                {
+                    msg = "Data has been delete";
+                }
+                else
+                {
+                    msg = "Error";
+                }
+            return msg;
         }
     }
 }
+
+
+
+
+
+
+ 
