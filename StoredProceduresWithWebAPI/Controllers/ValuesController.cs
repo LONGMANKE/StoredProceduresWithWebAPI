@@ -28,8 +28,33 @@ namespace StoredProceduresWithWebAPI.Controllers
         }
 
         // POST api/values
-        public void Post([FromBody] string value)  
+        public string Post(Employee employee)  
         {
+            string msg = ""; 
+            if(employee != null)
+            {
+                SqlCommand cmd = new SqlCommand("usp_AddEmployee", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Name", employee.Name);
+                cmd.Parameters.AddWithValue("@Age", employee.Age);
+                cmd.Parameters.AddWithValue("@Active", employee.Active);
+
+                con.Open();
+                int i = cmd.ExecuteNonQuery();
+                con.Close();
+
+                if (i > 0)
+                {
+                    msg =  "Data has been inserted";
+                }
+                else
+                {
+                    msg =  "Error";
+                }
+
+            }
+            return msg;
+
         }
 
         // PUT api/values/5
